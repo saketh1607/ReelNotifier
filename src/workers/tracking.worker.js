@@ -7,6 +7,6 @@ export const trackingWorker = new Worker('tracking-creation', async (job) => {
   const tracking = await prisma.reelTracking.findUnique({ where: { id: job.data.trackingId } });
   if (!tracking) return;
   // No supported creator monitoring integration is implemented in this phase.
-  logger.info({ trackingId: tracking.id }, 'Tracking request stored; creator monitoring is not enabled');
+  logger.info({ trackingId: tracking.id, reelId: tracking.reelId }, 'Tracking subscription stored; creator monitoring is not enabled');
 }, { connection: redis, concurrency: 5 });
 trackingWorker.on('failed', (job, error) => logger.error({ jobId: job?.id, err: error }, 'Tracking job failed'));

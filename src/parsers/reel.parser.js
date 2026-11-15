@@ -1,4 +1,4 @@
-const REEL_URL_RE = /https?:\/\/(?:www\.)?instagram\.com\/(?:reel|reels|p)\/([A-Za-z0-9_-]+)\/?(?:\?[^\s]*)?/gi;
+const REEL_URL_RE = /https?:\/\/(?:www\.)?instagram\.com\/(?:reel|reels)\/([A-Za-z0-9_-]+)\/?(?:\?[^\s]*)?/gi;
 
 export function extractReelUrls(text = '') {
   if (typeof text !== 'string') return [];
@@ -10,8 +10,9 @@ export function extractReelUrls(text = '') {
   return [...new Map(matches.map((item) => [item.shortcode, item])).values()];
 }
 
-export function normalizeReelUrl(input) {
+export function normalizeReelUrl(input, { allowPostPath = false } = {}) {
   if (typeof input !== 'string') return null;
-  const match = input.match(/^https?:\/\/(?:www\.)?instagram\.com\/(?:reel|reels|p)\/([A-Za-z0-9_-]+)\/?(?:\?[^\s]*)?$/i);
+  const pathKinds = allowPostPath ? '(?:reel|reels|p)' : '(?:reel|reels)';
+  const match = input.match(new RegExp(`^https?:\\/\\/(?:www\\.)?instagram\\.com\\/${pathKinds}\\/([A-Za-z0-9_-]+)\\/?(?:\\?[^\\s]*)?$`, 'i'));
   return match ? { url: `https://www.instagram.com/reel/${match[1]}/`, shortcode: match[1] } : null;
 }

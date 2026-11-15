@@ -8,60 +8,106 @@ datasource db {
 }
 
 model User {
-  id              String          @id @default(cuid())
-  instagramUserId String          @unique
+  id              String            @id @default(cuid())
+  instagramUserId String            @unique
   username        String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
   messages        IncomingMessage[]
   trackings       ReelTracking[]
 }
 
 model IncomingMessage {
-  id             String   @id @default(cuid())
-  messageId      String?  @unique
+  id             String    @id @default(cuid())
+  messageId      String?   @unique
   senderId       String
   recipientId    String
   messageText    String?
   attachmentData Json?
-  receivedAt     DateTime @default(now())
+  receivedAt     DateTime  @default(now())
   processedAt    DateTime?
   userId         String?
-  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([senderId, receivedAt])
   @@index([processedAt])
 }
 
-model ReelTracking {
-  id                 String         @id @default(cuid())
-  userId             String
-  originalReelUrl    String
-  creatorUsername    String?
-  creatorId          String?
-  originalCaption    String?
-  originalTimestamp  DateTime?
-  status             TrackingStatus @default(pending)
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  detectedReels      DetectedReel[]
+model Reel {
+  id           String         @id @default(cuid())
+  identity     String         @unique
+  shortcode    String?        @unique
+  mediaId      String?        @unique
+  canonicalUrl String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  trackings    ReelTracking[]
+}
 
+model ReelTracking {
+  id                String                 @id @default(cuid())
+  userId            String
+  reelId            String
+  originalReelUrl   String?
+  creatorUsername   String?
+  creatorId         String?
+  originalCaption   String?
+  originalTimestamp DateTime?
+  status            TrackingStatus         @default(pending)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  user              User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reel              Reel                   @relation(fields: [reelId], references: [id], onDelete: Cascade)
+  detectedReels     DetectedReel[]
+  notifications     NotificationDelivery[]
+
+  @@unique([userId, reelId])
   @@index([userId, createdAt])
   @@index([status, createdAt])
 }
 
 model DetectedReel {
-  id              String       @id @default(cuid())
+  id              String                 @id @default(cuid())
   trackingId      String
   reelUrl         String
   caption         String?
   publishedAt     DateTime?
   confidenceScore Float?
-  createdAt       DateTime     @default(now())
-  tracking        ReelTracking @relation(fields: [trackingId], references: [id], onDelete: Cascade)
+  createdAt       DateTime               @default(now())
+  tracking        ReelTracking           @relation(fields: [trackingId], references: [id], onDelete: Cascade)
+  notifications   NotificationDelivery[]
 
+  @@unique([trackingId, reelUrl])
   @@index([trackingId, createdAt])
+}
+
+model NotificationDelivery {
+  id             String         @id @default(cuid())
+  detectedReelId String
+  trackingId     String
+  status         DeliveryStatus @default(pending)
+  createdAt      DateTime       @default(now())
+  sentAt         DateTime?
+  detectedReel   DetectedReel   @relation(fields: [detectedReelId], references: [id], onDelete: Cascade)
+  tracking       ReelTracking   @relation(fields: [trackingId], references: [id], onDelete: Cascade)
+
+  @@unique([detectedReelId, trackingId])
+  @@index([status, createdAt])
+}
+
+model OutboxEvent {
+  id           String    @id @default(cuid())
+  eventType    String
+  aggregateId  String
+  dedupeKey    String    @unique
+  payload      Json
+  attempts     Int       @default(0)
+  createdAt    DateTime  @default(now())
+  lockedAt     DateTime?
+  dispatchedAt DateTime?
+  lastError    String?
+
+  @@index([dispatchedAt, lockedAt, createdAt])
 }
 
 enum TrackingStatus {
@@ -69,5 +115,12 @@ enum TrackingStatus {
   monitoring
   part_found
   completed
+  failed
+}
+
+enum DeliveryStatus {
+  pending
+  sending
+  sent
   failed
 }

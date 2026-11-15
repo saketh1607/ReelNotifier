@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createHmac } from 'node:crypto';
 process.env.META_VERIFY_TOKEN ??= 'test-verify-token';
 process.env.META_APP_SECRET ??= 'test-app-secret';
@@ -27,5 +27,10 @@ describe('Instagram webhook', () => {
   it('deduplicates equivalent messages by stable fallback id', () => {
     const event = { object: 'instagram', entry: [{ messaging: [{ sender: { id: 'u' }, recipient: { id: 'b' }, timestamp: 1, message: { text: 'x' } }] }] };
     expect(parseInstagramWebhook(event)[0].messageId).toBe(parseInstagramWebhook(event)[0].messageId);
+  });
+  it('ignores echo and unsupported webhook events without treating them as user DMs', () => {
+    expect(parseInstagramWebhook({ object: 'instagram', entry: [{ messaging: [{ sender: { id: 'business' }, recipient: { id: 'user' }, message: { mid: 'echo', is_echo: true, text: 'sent by us' } }], changes: [{ field: 'comments', value: { id: 'comment-1' } }] }] })).toEqual([]);
+    expect(parseInstagramWebhook({ object: 'instagram', entry: [{ changes: [{ field: 'messages', value: { sender: { id: 'business' }, recipient: { id: 'user' }, message: { mid: 'echo-2', is_echo: true, text: 'sent by us' } } }] }] })).toEqual([]);
+    expect(parseInstagramWebhook({ object: 'instagram', entry: [{ messaging: { malformed: true } }] })).toEqual([]);
   });
 });

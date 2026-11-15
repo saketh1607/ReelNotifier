@@ -11,11 +11,13 @@ import { notFound, errorHandler } from './middleware/error.middleware.js';
 import { webhookRouter } from './routes/webhook.routes.js';
 import { trackingRouter } from './routes/tracking.routes.js';
 import { messageRouter } from './routes/message.routes.js';
+import { rawWebhookBody } from './middleware/raw-webhook-body.middleware.js';
 
 export const app = express();
 app.disable('x-powered-by');
 app.use(helmet());
 app.use(pinoHttp({ logger, serializers: { req(req) { const pathname = String(req.url ?? '').split('?')[0]; return { id: req.id, method: req.method, url: pathname, remoteAddress: req.remoteAddress }; } } }));
+app.use('/webhooks/instagram', rawWebhookBody);
 app.use(express.json({ limit: '1mb', verify(req, res, buffer) { req.rawBody = Buffer.from(buffer); } }));
 app.get('/health', async (req, res) => {
   const checks = await Promise.allSettled([prisma.$queryRaw`SELECT 1`, redis.ping()]);
