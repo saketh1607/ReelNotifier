@@ -9,8 +9,15 @@
       "timestamp": 1730000000000,
       "message": {
         "mid": "aWdfZAG1faXRlbTox...",
-        "text": "Please track https://www.instagram.com/reel/ABC123/",
         "attachments": [{ "type": "ig_reel", "payload": { "title": "Part 1", "url": "https://www.instagram.com/reel/ABC123/", "video_id": "18000000000000001" } }]
+      }
+    }, {
+      "sender": { "id": "17890000000000002" },
+      "recipient": { "id": "17841423026295491" },
+      "timestamp": 1730000001000,
+      "message": {
+        "mid": "aWdfZAG1faXRlbTox...2",
+        "attachments": [{ "type": "ig_reel", "payload": { "title": "Another Reel", "video_id": "18000000000000002" } }]
       }
     }]
   }]

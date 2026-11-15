@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node src/server.js",
     "worker": "node src/workers/index.js",
@@ -26,5 +28,10 @@
     "pino-http": "^10.5.0",
     "zod": "^4.0.5"
   },
-  "devDependencies": { "prisma": "^6.11.1", "vitest": "^3.2.4", "supertest": "^7.1.1" }
+  "devDependencies": {
+    "prisma": "^6.11.1",
+    "supertest": "^7.1.1",
+    "vitest": "^3.2.4",
+    "yaml": "^2.9.1"
+  }
 }
